@@ -1,6 +1,6 @@
 This command allows users visualize server and user counting statistics.
 
-For more information about the counting system, see [this](https://github.com/yagpdb-cc/yagpdb-cc/blob/master/website/docs/fun/counting/overview) page.
+For more information about the counting system, see [this](overview) page.
 
 ## Trigger
 
