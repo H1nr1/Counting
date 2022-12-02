@@ -10,11 +10,11 @@ Trigger: `CStats`
 
 ## Usage
 
-See the [Counting Overview]() for more information about how to use this command.
+See the [Counting Overview](overview) for more information about how to use this command.
 
 ## Configuration
 
-See the [Counting Overview]() for more information about how to configure this command.
+See the [Counting Overview](overview) for more information about how to configure this command.
 
 ## Code
 
