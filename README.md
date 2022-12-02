@@ -1,4 +1,4 @@
-YAGPDB Counting CCs
+# YAGPDB Counting CCs
 
 This repository consists of counting custom commands for [YAGPDB](https://github.com/botlabs-gg/yagpdb)
 
