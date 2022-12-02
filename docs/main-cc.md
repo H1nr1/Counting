@@ -2,7 +2,7 @@ This command allows users to count in increments of one (by default) and has a h
 
 For more information about the counting system, see [this](https://github.com/yagpdb-cc/yagpdb-cc/blob/master/website/docs/fun/counting/overview) page.
 
-Trigger
+## Trigger
 
 Type: `Regex`
 
@@ -14,19 +14,19 @@ Use channel restrictions to restrict this custom command to your counting channe
 
 :::
 
-Usage
+## Usage
 
 See the [Counting Overview]() for more information about how to use this command.
 
-Configuration
+##Configuration
 
 See the [Counting Overview]() for more information about how to configure this command.
 
-Code
+## Code
 
 ```
 ```
 
-Author
+## Author
 
 This custom command was written by [@H1nr1](https://github.com/H1nr1)
