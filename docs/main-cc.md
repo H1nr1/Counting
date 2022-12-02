@@ -18,7 +18,7 @@ Use channel restrictions to restrict this custom command to your counting channe
 
 See the [Counting Overview]() for more information about how to use this command.
 
-##Configuration
+## Configuration
 
 See the [Counting Overview]() for more information about how to configure this command.
 
