@@ -6,18 +6,15 @@
 
 {{/* Configurable Values */}}
 {{ $LBLength := 10 }} {{/* How many members to show on leaderboard; MAX OF 100 */}}
-{{/* End of configuration values */}}
-
+{{/* End of configurable values */}}
+ 
 {{/* No Touchy */}}
 {{/* Initializing variables */}}
 {{ $Current := sub (dbGet 0 "Next").Value 1 }}
-{{ $LastUser := toInt (index (split (dbGet 0 "Last").Value " ") 0) }}
+{{ $Last := (dbGet 0 "Last").Value }}
 {{ $CCount := (dbGet .User.ID "CCount").Value }}
 {{ $CCorrect := (dbGet .User.ID "CCorrect").Value }}
 {{ $HighScore := dbGet 0 "CountHighScore" }}
-	{{ $HighScoreValue := toInt (index (split $HighScore.Value " ") 0) }}
-	{{ $HighScoreDate := formatTime $HighScore.UpdatedAt "01/02" }}
-	{{ $HighScoreUser := toInt (index (split $HighScore.Value " ") 1) }}
 {{ $UserID := 0 }}
 {{ $SecondChance := toInt (dbGet 0 "CSecondChance").Value }}
 {{ if eq $SecondChance 0 }}
@@ -27,17 +24,16 @@
 {{ end }}
 {{ $Args := parseArgs 0 ""
 	(carg "string" "Who") }}
-
+ 
 {{ if not ($Args.IsSet 0) }} {{/* Server Stats */}}
 	{{ sendMessage nil (cembed 
 		"title" "**🔢 Counting Statistics**"
-		"description" (print "⌚ __Current Score:__ " $Current "\n🏅 __High Score:__ " $HighScoreValue " on " $HighScoreDate " by " (userArg $HighScoreUser) "\n⏮️ __Last Counter:__ " (userArg $LastUser) "\n💾 __Saves Remaining:__ " $SecondChance)
+		"description" (print "⌚ __Current Score:__ " $Current "\n🏅 __High Score:__ " $HighScore.Value.Number " on " (formatTime $HighScore.UpdatedAt "01/02") " by " (userArg $HighScore.Value.User) "\n⏮️ __Last Counter:__ " (userArg $Last.User) "\n💾 __Saves Remaining:__ " $SecondChance)
 		"footer" (sdict "text" "Use this command: -CStats")
 		"color" 30654
 		"timestamp" currentTime) }}
-	{{ deleteTrigger 3 }}
 	{{ return }}
-
+ 
 {{ else if (inFold (cslice "Me" "My" "0") ($Args.Get 0)) }} {{/* Triggering user's stats */}}
 	{{ sendMessage nil (cembed
 		"title" (print "**🔢 " .User.Username "'s Counting Statistics**")
@@ -45,7 +41,7 @@
 		"footer" (sdict "text" "Use this command: -CStats [\"Me\"/\"My\"/0]")
 		"color" 30654
 		"timestamp" currentTime) }}
-
+ 
 {{ else if ($UserID = reFind `\d{17,19}` ($Args.Get 0)) }}
 	{{ if and (ne $UserID "0") (eq (dbCount (sdict "userID" (toInt64 $UserID) "pattern" "CCount")) 0) }}
 		{{ sendMessage nil (cembed 
@@ -62,7 +58,7 @@
 			"color" 30654
 			"timestamp" currentTime) }}
 	{{ end }}
-
+ 
 {{ else if (inFold (cslice "Leaderboard" "LB") ($Args.Get 0)) }} {{/* Server correct leaderboard */}}
 	{{ $Desc := "" }}
 	{{ $Place := 1 }}
@@ -75,7 +71,7 @@
 		"description" (print "```Pos    ✅  User\n" $Desc "```")
 		"footer" (sdict "text" "Use this command: -CStats [\"Leaderboard\"/\"LB\"]")
 		"color" 30654) }}
-
+ 
 {{ else }} {{/* Invalid syntax, gives syntax */}}
 	{{ sendMessage nil (cembed
 		"title" "Invalid Syntax"
@@ -83,5 +79,5 @@
 		"color" 16744192
 		"timestamp" currentTime) }}
 {{ end }}
-
+ 
 {{ deleteTrigger 5 }}
