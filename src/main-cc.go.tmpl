@@ -19,7 +19,7 @@
 {{/* End of configurable values */}}
 
 {{/* No Touchy */}}
-{{ $db := or (dbGet 0 "Counting").Value (sdict "Last" (sdict "User" 0 "Msg" 0) "Next" 1 "HighScore" (sdict "User" 0 "Num" 0) "SecondChance" 0) }}
+{{ $db := or (dbGet 0 "Counting").Value (sdict "Last" (sdict "User" 0 "Msg" 0) "Next" 1 "HighScore" (sdict "User" 0 "Num" 0 "Time" currentTime) "SecondChance" 1) }}
 {{ $UStats := or (dbGet .User.ID "Counting").Value (sdict "Correct" 0 "Total" 0) }}
 
 {{ with .ExecData }}
@@ -51,15 +51,15 @@
 		{{ execCC .CCID nil 10 .Message.ID }} {{/* Call to check if message was deleted */}}
 		
 	{{ else }} {{/* Wrong number */}}
-		{{ $db.Set "SecondChance" (add $db.SecondChance 1) }}
-		{{ if and $SecondChance (lt $db.SecondChance 2) }} {{/* Second Chance */}}
+		{{ $db.Set "SecondChance" (sub $db.SecondChance 1) }}
+		{{ if and $SecondChance (eq $db.SecondChance 0) }} {{/* Second Chance */}}
 			{{ if $Reactions }}{{ addReactions $WarningEmoji }}{{ end }}
 			{{ $db.Set "Last" (sdict "User" .User.ID "Msg" .Message.ID) }}{{ dbSet 0 "Counting" $db }}
 			{{ sendMessage nil (cembed "description" (print .User.Mention " sent an incorrect number of " $Number "\n**But**, second chance saved the count!\nThe next number is " $db.Next) "color" 16744192) }}
 
 		{{ else }} {{/* Reset count */}}
-			{{ if $StatsCC }}{{ $UStats.Set "Total" (add $UStats.Total 1) }}{{ dbSet .User.ID "Counting" $UStats }}{{ end }}{{ dbDel 0 "Counting" }}
 			{{ sendMessage nil (cembed "description" (print .User.Mention " sent an incorrect number of " $Number "\nCorrect number was " $db.Next "\nStart over at 1 🙃") "color" 16711680) }}
+			{{ if $StatsCC }}{{ $UStats.Set "Total" (add $UStats.Total 1) }}{{ dbSet .User.ID "Counting" $UStats }}{{ end }}{{ dbDel 0 "Counting" }}
 			{{ if $Reactions }}{{ addReactions $IncorrectEmoji }}{{ end }}
 		{{ end }}
 	{{ end }}
