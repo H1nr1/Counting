@@ -7,77 +7,37 @@
 {{/* Configurable Values */}}
 {{ $LBLength := 10 }} {{/* How many members to show on leaderboard; MAX OF 100 */}}
 {{/* End of configurable values */}}
- 
+
 {{/* No Touchy */}}
 {{/* Initializing variables */}}
-{{ $Current := sub (dbGet 0 "Next").Value 1 }}
-{{ $Last := (dbGet 0 "Last").Value }}
-{{ $CCount := (dbGet .User.ID "CCount").Value }}
-{{ $CCorrect := (dbGet .User.ID "CCorrect").Value }}
-{{ $HighScore := dbGet 0 "CountHighScore" }}
-{{ $UserID := 0 }}
-{{ $SecondChance := toInt (dbGet 0 "CSecondChance").Value }}
-{{ if eq $SecondChance 0 }}
-	{{ $SecondChance = 1 }}
-{{ else if ge $SecondChance 1 }}
-	{{ $SecondChance = 0 }}
-{{ end }}
-{{ $Args := parseArgs 0 ""
-	(carg "string" "Who") }}
- 
+{{ $db := or (dbGet 0 "Counting").Value (sdict "Last" (sdict "User" 0 "Msg" 0) "Next" 1 "HighScore" (sdict "User" 0 "Num" 0 "Time" currentTime) "Saves" 1) }}
+{{ $UStats := or (dbGet .User.ID "Counting").Value (sdict "Correct" 0 "Total" 0) }}
+
+{{/* Actual Code */}}
+{{ $Args := parseArgs 0 "" (carg "string" "") }}
 {{ if not ($Args.IsSet 0) }} {{/* Server Stats */}}
-	{{ sendMessage nil (cembed 
-		"title" "**🔢 Counting Statistics**"
-		"description" (print "⌚ __Current Score:__ " $Current "\n🏅 __High Score:__ " $HighScore.Value.Number " on " (formatTime $HighScore.UpdatedAt "01/02") " by " (userArg $HighScore.Value.User) "\n⏮️ __Last Counter:__ " (userArg $Last.User) "\n💾 __Saves Remaining:__ " $SecondChance)
-		"footer" (sdict "text" "Use this command: -CStats")
-		"color" 30654
-		"timestamp" currentTime) }}
-	{{ return }}
- 
-{{ else if (inFold (cslice "Me" "My" "0") ($Args.Get 0)) }} {{/* Triggering user's stats */}}
-	{{ sendMessage nil (cembed
-		"title" (print "**🔢 " .User.Username "'s Counting Statistics**")
-		"description" (print .User.Mention " has counted a __total__ of **" $CCount " times**\n" .User.Mention " has counted __correctly__ **" $CCorrect " times**\nThis makes " .User.Mention "'s __average__ **" (div (round (mult (div $CCorrect $CCount) 10000)) 100) "%**")
-		"footer" (sdict "text" "Use this command: -CStats [\"Me\"/\"My\"/0]")
-		"color" 30654
-		"timestamp" currentTime) }}
- 
-{{ else if ($UserID = reFind `\d{17,19}` ($Args.Get 0)) }}
-	{{ if and (ne $UserID "0") (eq (dbCount (sdict "userID" (toInt64 $UserID) "pattern" "CCount")) 0) }}
-		{{ sendMessage nil (cembed 
-			"title" (print "No available stats")
-			"description" (print (userArg $UserID) " has yet to count ☹️\nMaybe give them a heads-up to come join?")
-			"footer" (sdict "text" "Use this command: -CStats [User: @/ID]")) }}
-	{{ else }} {{/* Mentioned user's stats */}}
-		{{ $CCount = (dbGet (toInt64 $UserID) "CCount").Value }}
-		{{ $CCorrect = (dbGet (toInt64 $UserID) "CCorrect").Value }}
-		{{ sendMessage nil (cembed
-			"title" (print "**🔢 " (userArg ($UserID)) "'s Counting Statistics**")
-			"description" (print "<@" $UserID "> has counted a __total__ of **" $CCount " times**\n<@" $UserID "> has counted __correctly__ **" $CCorrect " times**\nThis makes <@" $UserID ">'s __average__ **" (div (round (mult (div $CCorrect $CCount) 10000)) 100) "%**")
-			"footer" (sdict "text" "Use this command: -CStats [User: @/ID]")
-			"color" 30654
-			"timestamp" currentTime) }}
+	{{ sendMessage nil (cembed "author" (sdict "icon_url" (print "https://cdn.discordapp.com/icons/" .Guild.ID "/" .Guild.Icon) "name" "🔢 Counting Statistics") "description" (print "⌚ __Current Score:__ " (sub $db.Next 1) "\n🏅 __High Score:__ " $db.HighScore.Num " on " (formatTime $db.HighScore.Time "01/02") " by " (userArg $db.HighScore.User) "\n⏮️ __Last Counter:__ " (userArg $db.Last.User) "\n💾 __Saves Remaining:__ " $db.Saves) "footer" (sdict "text" "Use this command: -CStats") "color" 30654 ) }}
+
+{{ else if inFold (cslice "Me" "My" "0") ($Args.Get 0) }} {{/* Triggering user's stats */}}
+	{{ sendMessage nil (cembed "title" (print "**🔢 " .User.Username "'s Counting Statistics**") "description" (print .User.Mention " has counted a __total__ of **" $UStats.Total " times**\n" .User.Mention " has counted __correctly__ **" $UStats.Correct " times**\nThis makes " .User.Mention "'s __average__ **" (div (round (mult (div $UStats.Correct $UStats.Total) 10000)) 100) "%**") "footer" (sdict "text" "Use this command: -CStats [Me/My/0]") "color" 30654 ) }}
+
+{{ else if ($User := userArg (toInt (reFind `\d{17,19}` ($Args.Get 0)))) }} {{/* User Mention */}}
+	{{ with (dbGet $User.ID "Counting").Value }} {{/* Mentioned user's stats */}}
+		{{ sendMessage nil (cembed "title" (print "**🔢 " $User "'s Counting Statistics**") "description" (print $User.Mention " has counted a __total__ of **" $CCount " times**\n" $User.Mention " has counted __correctly__ **" $CCorrect " times**\nThis makes" $User.Mention "'s __average__ **" (div (round (mult (div $CCorrect $CCount) 10000)) 100) "%**") "footer" (sdict "text" "Use this command: -CStats [User: @/ID]") "color" 30654 ) }}
+	{{ else }} {{/* No Stats */}}
+		{{ sendMessage nil (cembed "title" (print "No available stats") "description" (print $User " has yet to count ☹️\nMaybe give them a heads-up to come join?") "footer" (sdict "text" "Use this command: -CStats [User: @/ID]")) }}
 	{{ end }}
- 
-{{ else if (inFold (cslice "Leaderboard" "LB") ($Args.Get 0)) }} {{/* Server correct leaderboard */}}
-	{{ $Desc := "" }}
-	{{ $Place := 1 }}
+
+{{ else if reFind `(?i)L(eader)?B(oard)?` ($Args.Get 0)) }} {{/* Server leaderboard */}}
+	{{ $Desc := "" }}{{ $Place := 1 }}
 	{{ range (dbTopEntries "CCorrect" $LBLength 0) }}
-		{{- $Desc = (joinStr "\n" $Desc (printf "#%-3d %4d - %-4s" $Place (toInt .Value) (userArg .UserID))) -}}
+		{{- $Desc = (joinStr "\n" $Desc (printf "#%-3d %4d - %-4s" $Place (toInt .Value) (or (userArg .UserID) (str .UserID)))) }}
 		{{- $Place = add $Place 1 -}}
 	{{ end }}
-	{{ sendMessage nil (cembed 
-		"title" "**Counting Leaderboard**"
-		"description" (print "```Pos    ✅  User\n" $Desc "```")
-		"footer" (sdict "text" "Use this command: -CStats [\"Leaderboard\"/\"LB\"]")
-		"color" 30654) }}
- 
-{{ else }} {{/* Invalid syntax, gives syntax */}}
-	{{ sendMessage nil (cembed
-		"title" "Invalid Syntax"
-		"description" "For server counting statistics: `-CStats`\nFor your statistics: `-CStats [\"Me\"/\"My\"/\"0\"]`\nFor another member's statistics: `-CStats [@/ID]`\nFor server leaderboard: `-CStats [\"Leaderboard\"/\"LB\"]`"
-		"color" 16744192
-		"timestamp" currentTime) }}
+	{{ sendMessage nil (cembed "author" (sdict "icon_url" (print "https://cdn.discordapp.com/icons/" .Guild.ID "/" .Guild.Icon) "name" "Counting Leaderboard") "description" (print "```Pos    ✅  User\n" $Desc "```") "footer" (sdict "text" "Use this command: -CStats [Leaderboard/LB]") "color" 30654 ) }}
+
+{{ else }} {{/* Invalid syntax */}}
+	{{ sendMessage nil (cembed "title" "Invalid Syntax" "description" "For server counting statistics: `-CStats`\nFor your statistics: `-CStats <Me/My/0>`\nFor another member's statistics: `-CStats <User: @/ID>`\nFor server leaderboard: `-CStats <Leaderboard/LB>`" "color" 16744192 ) }}
 {{ end }}
- 
+
 {{ deleteTrigger 5 }}
