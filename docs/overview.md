@@ -15,7 +15,7 @@ This package contains two custom commands: the [main command](main-cc), and [sta
 
 ## Main Command
 
-Add the [main command](main-cc) as a new custom command. The trigger is a regex trigger type with value `^(\d{1,}|\()`.
+Add the [main command](main-cc) as a new custom command. The trigger is a regex trigger type with value `\A(\d+|\()`.
 
 ::: caution
 
