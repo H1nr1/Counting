@@ -6,7 +6,7 @@ For more information about the counting system, see [this](overview) page.
 
 Type: `Regex`
 
-Trigger: `^(\d{1,}|\()`
+Trigger: `\A(\d+|\()`
 
 ::: caution
 
