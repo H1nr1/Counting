@@ -7,10 +7,10 @@
 */}}
 
 {{/* Configurable Values */}}
-{{ $CountTwice := true }} {{/* Allow users to count multiple times in a row; true/false */}}
-{{ $CorrectRID := 1038688163033522227 }} {{/* Correct Counting role ID; set to false to disable */}}
+{{ $CountTwice := false }} {{/* Allow users to count multiple times in a row; true/false */}}
+{{ $CorrectRID := false }} {{/* Correct Counting role ID; set to false to disable */}}
 {{ $IncorrectRID := false }} {{/* Incorrect Counting role ID; set to false to disable */}}
-{{ $ErrorCID := 1037874996242038865 }} {{/* Channel ID to send errors to */}}
+{{ $ErrorCID := 123replaceMe }} {{/* Channel ID to send errors to */}}
 {{ $SecondChance := true }} {{/* Second chance if wrong; true/false */}}
 {{ $StatsCC := true }} {{/* If you added the Stats CC; true/false */}}
 {{ $Reactions := true }} {{/* Allow confirmative reactions on message; true false */}}
